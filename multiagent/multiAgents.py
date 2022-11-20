@@ -201,10 +201,9 @@ class MinimaxAgent(MultiAgentSearchAgent):
         pacManActions = gameState.getLegalActions(0)
         for pAct in pacManActions:
             pacManSuccessor = gameState.generateSuccessor(0,pAct)
-            for ghostIndex in range(1,agents):
-                score = self.min(max,b,ghostIndex,pacManSuccessor,depth)
-                if score > max:
-                    max = score
+            score = self.min(max,b,1,pacManSuccessor,depth)
+            if score > max:
+                max = score
         return max
 
                     
