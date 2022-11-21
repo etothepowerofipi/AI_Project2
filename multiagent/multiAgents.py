@@ -258,12 +258,11 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
             ghostSuccessor = gameState.generateSuccessor(agentNo,action)
             if agentNo < lastGhost:
                 nextAgent = agentNo + 1
-                v = min(v,self.minValue(ghostSuccessor,a,b,depth,nextAgent))
+                temp = self.minValue(ghostSuccessor,a,b,depth,nextAgent)
+                v = min(v,temp)
             else:
                 v = min(v,self.maxValue(ghostSuccessor,a,b,depth-1))
             if v < a:
-                if v == -9:
-                    print("retrurning -9 < a =",a)
                 return v
             b = min(v,b)
         return v
@@ -280,11 +279,10 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
         pacManActions = gameState.getLegalActions(0)
         for action in pacManActions:
             pacManSuccessor = gameState.generateSuccessor(0,action)
-            for ghostNumber in range(1,agents):
-                value = self.minValue(pacManSuccessor,a,b,self.depth,ghostNumber)
-                if value > a:
-                    a = value
-                    bestMove = action
+            value = self.minValue(pacManSuccessor,a,b,self.depth,1)
+            if value > a:
+                a = value
+                bestMove = action
         return bestMove
 
         util.raiseNotDefined()
