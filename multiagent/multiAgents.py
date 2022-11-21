@@ -195,7 +195,7 @@ class MinimaxAgent(MultiAgentSearchAgent):
 
     def max(self,a,b,gameState:GameState,depth):
         if gameState.isWin() or gameState.isLose() or depth == 0:
-            return scoreEvaluationFunction(gameState)
+            return self.evaluationFunction(gameState)
         agents = gameState.getNumAgents()
         max = a
         pacManActions = gameState.getLegalActions(0)
@@ -209,7 +209,7 @@ class MinimaxAgent(MultiAgentSearchAgent):
                     
     def min(self,a,b,agentNo,gameState:GameState,depth):
         if gameState.isWin() or gameState.isLose():
-            return scoreEvaluationFunction(gameState)
+            return self.evaluationFunction(gameState)
         min = b
         lastGhost = gameState.getNumAgents() - 1
         ghostActions = gameState.getLegalActions(agentNo)
@@ -234,7 +234,7 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
 
     def maxValue(self,gameState:GameState, a, b, depth):
         if gameState.isWin() or gameState.isLose() or depth == 0:
-            return scoreEvaluationFunction(gameState)
+            return self.evaluationFunction(gameState)
         v = -999999
         agents = gameState.getNumAgents()
         pacManActions = gameState.getLegalActions(0)
@@ -249,7 +249,7 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
     
     def minValue(self,gameState:GameState, a, b, depth, agentNo):
         if gameState.isWin() or gameState.isLose() or depth == 0:
-            return scoreEvaluationFunction(gameState)
+            return self.evaluationFunction(gameState)
         v = 999999
         agents = gameState.getNumAgents()
         lastGhost = agents - 1
@@ -274,7 +274,6 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
         "*** YOUR CODE HERE ***"
         a = -999999
         b = 999999
-        agents = gameState.getNumAgents()
         bestMove = None
         pacManActions = gameState.getLegalActions(0)
         for action in pacManActions:
@@ -291,6 +290,37 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
     """
       Your expectimax agent (question 4)
     """
+    
+    def expectiMax(self, gameState : GameState, depth, agentNo):
+        if gameState.isWin() or gameState.isLose() or depth == 0:
+            return self.evaluationFunction(gameState)
+        isPacman = agentNo == 0
+        actions = gameState.getLegalActions(agentNo)
+        if isPacman:
+            max = -999999
+            for action in actions:
+                pacManSuccessor = gameState.generateSuccessor(agentNo,action)
+                v = self.expectiMax(pacManSuccessor,depth,(agentNo+1))
+                if v > max:
+                    max = v
+            return max
+        n = len(actions)
+        avg = 0
+        agents = gameState.getNumAgents()
+        lastGhost = agents - 1
+        if agentNo < lastGhost:
+            for action in actions:
+                ghostSuccessor = gameState.generateSuccessor(agentNo,action)
+                v = self.expectiMax(ghostSuccessor,depth,(agentNo+1))
+                avg += v / n
+            return avg
+        for action in actions:
+            ghostSuccessor = gameState.generateSuccessor(agentNo,action)
+            v = self.expectiMax(ghostSuccessor,(depth-1),0)
+            avg += v / n
+        return avg
+
+
 
     def getAction(self, gameState: GameState):
         """
@@ -300,6 +330,18 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
         legal moves.
         """
         "*** YOUR CODE HERE ***"
+        bestMove = None
+        max = -999999
+        pacManActions = gameState.getLegalActions(0)
+        for action in pacManActions:
+            pacManSuccessor = gameState.generateSuccessor(0,action)
+            value = self.expectiMax(pacManSuccessor,self.depth,1)
+            if value > max:
+                max = value
+                bestMove = action
+        return bestMove
+
+
         util.raiseNotDefined()
 
 def betterEvaluationFunction(currentGameState: GameState):
