@@ -352,6 +352,18 @@ def betterEvaluationFunction(currentGameState: GameState):
     DESCRIPTION: <write something here so we know what you did>
     """
     "*** YOUR CODE HERE ***"
+    pacManPos = currentGameState.getPacmanPosition()
+    foodList = currentGameState.getFood().asList()
+
+    if len(foodList) > 0:
+        minDist = manhattanDistance(pacManPos,foodList[0])
+        for f in foodList[1:]:
+            dist = manhattanDistance(pacManPos,f)
+            if dist < minDist:
+                minDist = dist
+
+        return currentGameState.getScore() - minDist
+    return currentGameState.getScore()
     util.raiseNotDefined()
 
 # Abbreviation
