@@ -81,22 +81,31 @@ class ReflexAgent(Agent):
         oldFood = currentGameState.getFood()
         oldFoodList = oldFood.asList()
 
+        #if there are fewer dots of food in the new state, that means one was consumed
         contains_food = len(foodList) < len(oldFoodList)
 
+        #list of all the positions of the ghosts
         ghostList = []
         for s in newGhostStates:
             ghostList.append(s.getPosition())
 
+        #Computes distance to closest ghost
         distToGhost = manhattanDistance(newPos,ghostList[0])
         for g in ghostList:
             dist = manhattanDistance(newPos,g)
             if (dist < distToGhost):
                 distToGhost = dist
 
-        
-        if (newPos not in ghostList) and (contains_food):
+        #If there is a ghost in the new state, then it is obviously a bad move to go there, unless it is the last piece of food and PacMan immediately wins.
+        #However, that case is already taken care of in the <if len(foodList) == 0> check
+        if newPos in ghostList:
+            return -9999
+
+        #Moving to a state where food is consumed is most of the time better than the alternatives
+        if contains_food:
             return 9999
 
+        #The distance to the closest food dot. It is obviously never 0, because if there were food in this state, it has already been consumed
         min = 0
         if newPos not in foodList:
             min = manhattanDistance(newPos,foodList[0])
@@ -105,9 +114,8 @@ class ReflexAgent(Agent):
                 if (dist < min):
                     min = dist
         
-        if newPos in ghostList:
-            return -9999
-        
+
+        #Distance to closest piece of food is much more important than distance to closest ghost
         return distToGhost/(min*min*min)
         
 
@@ -177,13 +185,16 @@ class MinimaxAgent(MultiAgentSearchAgent):
 
         firstGhost = 1
         bestMove = None
+        #Useful for finding maximum score
         a = -999999
+        #Useful for finding minimum score
         b = 999999
 
         agents = gameState.getNumAgents()
         pacManActions = gameState.getLegalActions(pacMan)
         for pAct in pacManActions:
             pacManSuccessor = gameState.generateSuccessor(pacMan,pAct)
+            #The ghosts all act as one player, each calling self.min() recursively until all ghosts have been checked. Hence, it starts with the first ghost.
             score = self.min(a,b,firstGhost,pacManSuccessor,depth)
             if (score > a):
                 a = score
@@ -350,20 +361,25 @@ def betterEvaluationFunction(currentGameState: GameState):
     evaluation function (question 5).
 
     DESCRIPTION: <write something here so we know what you did>
+    The function simply returns current score minus the distance to the closest food pellet.
+    Thus, PacMan is motivated to always minimize the distance to said pellet, meaning
+    it will more often than not path towards it
     """
     "*** YOUR CODE HERE ***"
     pacManPos = currentGameState.getPacmanPosition()
     foodList = currentGameState.getFood().asList()
 
-    if len(foodList) > 0:
-        minDist = manhattanDistance(pacManPos,foodList[0])
-        for f in foodList[1:]:
-            dist = manhattanDistance(pacManPos,f)
-            if dist < minDist:
-                minDist = dist
+    if len(foodList) == 0:
+        return currentGameState.getScore()
 
-        return currentGameState.getScore() - minDist
-    return currentGameState.getScore()
+    minDist = manhattanDistance(pacManPos,foodList[0])
+    for f in foodList[1:]:
+        dist = manhattanDistance(pacManPos,f)
+        if dist < minDist:
+            minDist = dist
+    #Very similar to the function from q1, only this one is even simpler to understand (and compute).
+    return currentGameState.getScore() - minDist
+
     util.raiseNotDefined()
 
 # Abbreviation
